@@ -1,0 +1,19 @@
+.main {
+  padding:2em;
+}
+
+
+.songSection {
+  margin-top: 1.5em;
+}
+
+.line {
+  position: relative;
+  margin-top: 1.5em;
+}
+
+.chord {
+  position: absolute;
+  color: red;
+  bottom: 1em;
+}
