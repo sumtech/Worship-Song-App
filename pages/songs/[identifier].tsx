@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import styles from '@/styles/Home.module.css'
-import { getFileContents, getSongDataFromFileContents } from '@/services/songs.service'
+import { getSongFileContents, getSongDataFromFileContents } from '@/services/songs.service'
 import type { SongData } from '@/services/songs.service'
 
 type IProps = {
@@ -21,12 +21,12 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 
     let fileContents: string;
     try {
-        fileContents = await getFileContents(identifier);
+        fileContents = await getSongFileContents(identifier);
     } catch {
         return { props: { song: null } };
     }
 
-    const songData = getSongDataFromFileContents(fileContents, { chordStyle: styles.chord });
+    const songData = getSongDataFromFileContents(fileContents, { chordClassName: styles.chord });
     return {
         props: {
             song: songData,
