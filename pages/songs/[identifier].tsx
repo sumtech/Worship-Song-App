@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import styles from '@/styles/Home.module.css'
@@ -34,8 +35,14 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
 }
 
 export default function SongPage({ song }: IProps) {
-    const title = song.metadata.title || '<<title goes here>>';
-    const author = song.metadata.authors || song.metadata.author || '<<author goes here>>';
+    const [showChords, setShowChords] = useState(true);
+
+    const title = song.metadata.title;
+    const author = song.metadata.authors || song.metadata.author;
+
+    const onToggleChords = () => {
+        setShowChords(!showChords);
+    }
 
     return (
         <>
@@ -44,20 +51,27 @@ export default function SongPage({ song }: IProps) {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <main className={styles.main}>
-                <h1>{title}</h1>
-                <h2>{author}</h2>
-                {song.metadata.album ? <h3>{song.metadata.album}</h3> : null}
-                {song.metadata.publisher ? <h3>{song.metadata.publisher}</h3> : null}
-                {song.metadata.copyright ? <h3>{song.metadata.copyright}</h3> : null}
+                <div style={{ float: 'right' }}>
+                    <button onClick={onToggleChords}>{showChords ? 'Hide Chords' : 'Show Chords'}</button>
+                </div>
+                <h1 className={styles.songTitle}>{title}</h1>
+                <div className={styles.songAuthor}>{author}</div>
+                {song.metadata.album ? <div className={styles.songMetadata}>{song.metadata.album}</div> : null}
+                {song.metadata.publisher ? <div className={styles.songMetadata}>{song.metadata.publisher}</div> : null}
+                {song.metadata.copyright ? <div className={styles.songMetadata}>{song.metadata.copyright}</div> : null}
 
                 {(
                     song.sections.map((section, index) => (
                         <div key={index} className={styles.songSection}>
-                            <h3>{section.title}</h3>
+                            <h2>{section.title}</h2>
                             {
-                                section.styledContent.map((item, index) => (
-                                    <pre key={index} className={styles.line} dangerouslySetInnerHTML={{ __html: item }}></pre>
-                                ))
+                                showChords ?
+                                    section.styledContent.map((item, index) => (
+                                        <pre key={index} className={styles.line} dangerouslySetInnerHTML={{ __html: item }}></pre>
+                                    )) :
+                                    section.lyrics.map((item, index) => (
+                                        <pre key={index} className={styles.line}>{item}</pre>
+                                    ))
                             }
                         </div>
                     ))

@@ -14,6 +14,9 @@ export default function Home() {
       </Head>
       <main className={styles.main}>
         <h1>Hello World</h1>
+        <ul>
+          <li><a href="/songs">Songs</a></li>
+        </ul>
       </main>
     </>
   )
