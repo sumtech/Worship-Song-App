@@ -202,8 +202,6 @@ export const getSongDataFromFileContents = (songFileData: SongFileData, options?
     songData.originalMainKey = getKey(songData.metadata.key) || getKey(songData.metadata.main_key) || undefined;
     songData.mainKey = options?.newKey || songData.originalMainKey;
 
-    console.log(songData.originalMainKey, options?.newKey)
-
     songLines.forEach((line) => {
         if (options?.metadataOnly) return;
 
