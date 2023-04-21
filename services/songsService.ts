@@ -199,8 +199,11 @@ export const getSongDataFromFileContents = (songFileData: SongFileData, options?
         addMetadataToSongData(line, songData);
     });
 
-    songData.originalMainKey = getKey(songData.metadata.key) || getKey(songData.metadata.main_key) || undefined;
-    songData.mainKey = options?.newKey || songData.originalMainKey;
+    const key = getKey(songData.metadata.key || songData.metadata.main_key);
+    if (key) {
+        songData.originalMainKey = key;
+        songData.mainKey = options?.newKey || songData.originalMainKey;
+    }
 
     songLines.forEach((line) => {
         if (options?.metadataOnly) return;

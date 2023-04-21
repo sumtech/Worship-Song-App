@@ -1,6 +1,7 @@
 import Head from 'next/head';
-import styles from '@/styles/Home.module.css';
 import type { GetServerSideProps } from 'next';
+import Link from 'next/link';
+import styles from '@/styles/Home.module.css';
 import { getSongListSummaries } from '@/services/songsService';
 import type { SongSummary } from '@/services/songsService';
 import { getSongListFileContents } from '@/services/songFileService';
@@ -33,7 +34,7 @@ export default function SongListPage({ songs }: IProps) {
                     <ul>
                         {(
                             songs.map(song => (
-                                <li key={song.identifier}><a href={`/songs/${song.identifier}`}>{song.title}</a> by {song.author}</li>
+                                <li key={song.identifier}><Link href={`/songs/${song.identifier}`}>{song.title}</Link> by {song.author}</li>
                             ))
                         )}
                     </ul>

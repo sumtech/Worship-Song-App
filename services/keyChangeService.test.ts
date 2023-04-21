@@ -53,8 +53,10 @@ describe('transpose', () => {
     const sameKeyCases: [value: string | undefined | null, key: Key, expected: string][] = [
         ["C", Key.C, "C"],
         ["Cm", Key.C, "Cm"],
+        ["Cmin", Key.C, "Cm"],
         ["Csus", Key.C, "Csus"],
         ["Csus4", Key.C, "Csus"],
+        ["C6", Key.C, "C6"],
         ["C7", Key.C, "C7"],
         ["CM7", Key.C, "C7"],
         ["Cmaj7", Key.C, "C7"],
@@ -67,6 +69,10 @@ describe('transpose', () => {
         ["Cadd9", Key.C, "C9"],
         ["C5", Key.C, "C5"],
         ["C(no3)", Key.C, "C5"],
+        ["C+", Key.C, "C+"],
+        ["Caug", Key.C, "C+"],
+        ["Co", Key.C, "Co"],
+        ["Cdim", Key.C, "Co"],
     ];
 
     const changingKeyCases: [value: string | undefined | null, originalKey: Key, newKey: Key, expected: string][] = [

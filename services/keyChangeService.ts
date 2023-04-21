@@ -1,5 +1,10 @@
 // All the keys.
 // When multiple names could be used for the same key, the most common one is used.
+// References:
+//      https://en.wikipedia.org/wiki/List_of_chords
+//      https://www.guitar-chord.org/chord-types.html
+//      https://www.worshiparts.net/resources/worship-training/ultimate-guide-to-understanding-worship-chords/
+//      https://hellomusictheory.com/learn/types-of-chords/
 
 // ♭♯𝄪♪♫
 
@@ -51,11 +56,14 @@ enum ChordType {
     // 1, 4, 5
     Suspended,
 
+    // 1, 3, 5, 6
+    MajorSixth,
+
     // 1, 3, 5, 7
     MajorSeventh,
 
     // 1, 3♭, 5, 7
-    MinorSeventh, // m7
+    MinorSeventh,
 
     // 1, 4, 5, 7
     SuspendedMinorSeventh,
@@ -73,10 +81,10 @@ enum ChordType {
     MajorMissingThird,
 
     // 1, 3, 5#
-    // Augmented
+    Augmented,
 
     // 1, 3♭, 5♭
-    // Diminished,
+    Diminished,
 }
 
 /**
@@ -154,11 +162,48 @@ const getKeyChange = (originalKey: Key, newKey: Key): number => {
 }
 
 const getChordParts = (value: string): { chordType: ChordType, chord: string } => {
+    // Augmented
+    if (value.endsWith("+")) {
+        return {
+            chordType: ChordType.Augmented,
+            chord: value.slice(0, value.length - 1),
+        };
+    }
+
+    if (value.endsWith("aug")) {
+        return {
+            chordType: ChordType.Augmented,
+            chord: value.slice(0, value.length - 3),
+        };
+    }
+
+    // Diminished
+    if (value.endsWith("o")) {
+        return {
+            chordType: ChordType.Diminished,
+            chord: value.slice(0, value.length - 1),
+        };
+    }
+
+    if (value.endsWith("dim")) {
+        return {
+            chordType: ChordType.Diminished,
+            chord: value.slice(0, value.length - 3),
+        };
+    }
+
     // Minor
     if (value.endsWith("m")) {
         return {
             chordType: ChordType.Minor,
             chord: value.slice(0, value.length - 1),
+        };
+    }
+
+    if (value.endsWith("min")) {
+        return {
+            chordType: ChordType.Minor,
+            chord: value.slice(0, value.length - 3),
         };
     }
 
@@ -174,6 +219,14 @@ const getChordParts = (value: string): { chordType: ChordType, chord: string } =
         return {
             chordType: ChordType.Suspended,
             chord: value.slice(0, value.length - 4),
+        };
+    }
+
+    // Major 6th
+    if (value.endsWith("6")) {
+        return {
+            chordType: ChordType.MajorSixth,
+            chord: value.slice(0, value.length - 1),
         };
     }
 
@@ -222,7 +275,7 @@ const getChordParts = (value: string): { chordType: ChordType, chord: string } =
             chord: value.slice(0, value.length - 4),
         };
     }
-    
+
     if (value.endsWith("2")) {
         return {
             chordType: ChordType.MajorSuspended2,
@@ -268,6 +321,7 @@ const getChordParts = (value: string): { chordType: ChordType, chord: string } =
         };
     }
 
+    // Major
     return {
         chordType: ChordType.Major,
         chord: value
@@ -291,6 +345,9 @@ const getChord = (chordType: ChordType, chord: string): string => {
         case ChordType.Suspended:
             return `${chord}sus`;
 
+        case ChordType.MajorSixth:
+            return `${chord}6`;
+
         case ChordType.MajorSeventh:
             return `${chord}7`;
 
@@ -312,6 +369,12 @@ const getChord = (chordType: ChordType, chord: string): string => {
         case ChordType.MajorMissingThird:
             return `${chord}5`;
 
+        case ChordType.Augmented:
+            return `${chord}+`;
+
+        case ChordType.Diminished:
+            return `${chord}o`;
+
         default:
             return chord;
     }
@@ -325,7 +388,7 @@ const getChord = (chordType: ChordType, chord: string): string => {
  */
 const transposeChord = (value: string, change: number): string => {
     const key = getKey(value);
-    if (key === null) return "X";
+    if (key === null) return "?";
 
     let newKey = key + change;
     if (newKey > 11) {

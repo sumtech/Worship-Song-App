@@ -1,10 +1,11 @@
 import { useState } from 'react'
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
+import Link from 'next/link'
+import { Button, MenuItem, Select } from '@mui/material'
 import styles from '@/styles/Home.module.css'
 import { getSongDataFromFileContents } from '@/services/songsService'
 import type { SongData } from '@/services/songsService'
-import { Button, MenuItem, Select } from '@mui/material'
 import { Key } from '@/services/keyChangeService'
 import { SongFileData, getSongFileContents } from '@/services/songFileService'
 
@@ -47,7 +48,7 @@ export default function SongPage({ songData }: IProps) {
 
     const keys = Object.keys(Key)
         .filter((key) => !isNaN(key as any))
-        .map((key) => ({key: key, label: Key[key as any]}));
+        .map((key) => ({ key: key, label: Key[key as any] }));
 
     const onToggleChords = () => {
         setShowChords(!showChords);
@@ -56,7 +57,7 @@ export default function SongPage({ songData }: IProps) {
     const handleKeyChange = (newKeyValue: string) => {
         const newKey = Number(newKeyValue);
         setSelectedKey(newKey);
-        
+
         const transposedSong = getSongDataFromFileContents(song.originalSongFileData, { chordClassName: styles.chord, newKey });
         setSong(transposedSong);
     }
@@ -69,12 +70,17 @@ export default function SongPage({ songData }: IProps) {
             </Head>
             <main className={styles.main}>
                 <div style={{ float: 'right' }}>
-                    <Select label="Key" value={selectedKey} onChange={(event) => handleKeyChange(event.target.value as any)}>
-                        {keys.map((key) => (
-                            <MenuItem key={key.key} value={key.key}>{key.label}</MenuItem>
-                        ))}
-                    </Select>
+                    {
+                        selectedKey ?
+                            <Select label="Key" value={selectedKey} onChange={(event) => handleKeyChange(event.target.value as any)}>
+                                {keys.map((key) => (
+                                    <MenuItem key={key.key} value={key.key}>{key.label}</MenuItem>
+                                ))}
+                            </Select> : null
+                    }
+
                     <Button onClick={onToggleChords}>{showChords ? 'Hide Chords' : 'Show Chords'}</Button>
+                    <Link href="/songs">Songs</Link>
                 </div>
                 <h1 className={styles.songTitle}>{title}</h1>
                 <div className={styles.songAuthor}>{author}</div>
