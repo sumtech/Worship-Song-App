@@ -1,5 +1,5 @@
-import path from "path";
-import { promises as fs } from 'fs';
+import { type Key, getKey, transpose } from "./keyChangeService";
+import { SongFileData } from "./songFileService";
 
 /**
  * Here are the rules and notes for creating the song files.
@@ -7,6 +7,8 @@ import { promises as fs } from 'fs';
  *      * The top section should contain metadata information in the format of "Metadata Name: Metadata Value".
  *      * Each piece of metadata should be on its own line.
  *      * Each file should at least have Title and Author (or Authors) in the metadata.
+ *      * Key or Main Key need to be added for key changing functionality to work.
+ *        The value should just be the simple key, i.e., "A" or "Am". Key changing functionality will not work if the chord is not recognized.
  *      * Each metadata name should be unique. For example, Authors can be used to add a comma-separated list of authors.
  *        Or Source 1 and Source 2 could be used to reference separate sources where different information came from.
  *        Adding two Author entries for metadata will cause only one of them to be used (likely the last one).
@@ -22,12 +24,22 @@ import { promises as fs } from 'fs';
 export type SongSummary = {
     title: string,
     author: string,
+    mainKey: Key | null,
     identifier: string,
     metadata: { [key: string]: string },
 }
 
 // All the information for a song, including lyrics and chords.
 export type SongData = {
+    // The original file contents.
+    originalSongFileData: SongFileData;
+
+    // The original main key for the song.
+    originalMainKey?: Key,
+
+    // The main key for the song.
+    mainKey?: Key,
+
     // The collection of metadata about the song.
     metadata: { [key: string]: string },
 
@@ -37,52 +49,18 @@ export type SongData = {
         title: string,
 
         // The collection of raw lines of content.
-        content: string[],
+        originalLines: string[],
 
         // The collection of lines of content with HTML styling for the chords.
-        styledContent: string[],
+        chordedLines: string[],
 
         // The collection of lines of content with chords stripped out to keep only the lyrics.
-        lyrics: string[],
+        lyricLines: string[],
     }[],
 }
 
 // This is the marker to use within the files to separate the metadata header section from the lyric/chord content section.
 const endHeaderMarker = '==========';
-
-/**
- * Gets the list of all song summaries.
- * @returns The list of songs.
- */
-export const getSongList = async (): Promise<SongSummary[]> => {
-    const fileDirectory = path.join(process.cwd(), 'song-files');
-    const files = await fs.readdir(fileDirectory, { encoding: 'utf-8' });
-
-    return Promise.all(files.map(async file => {
-        const filePath = `${fileDirectory}/${file}`;
-        const identifier = file.slice(0, file.length - 4);
-        const fileContents = await fs.readFile(filePath, { encoding: 'utf-8' });
-        const songData = getSongDataFromFileContents(fileContents, { metadataOnly: true });
-        const songSummary: SongSummary = {
-            title: songData.metadata.title ?? '<<Title goes here>>',
-            author: songData.metadata.authors || songData.metadata.author || '<<Author goes here>>',
-            identifier,
-            metadata: songData.metadata,
-        };
-        return songSummary;
-    }));
-}
-
-/**
- * Gets the raw contents of a song file.
- * @param identifier The identifier for the song, based on how the file is named. i.e., "worthy-of-it-all"
- * @returns The raw contents of the song file.
- */
-export const getSongFileContents = async (identifier: string): Promise<string> => {
-    const fileDirectory = path.join(process.cwd(), 'song-files');
-    const filePath = `${fileDirectory}/${identifier}.txt`;
-    return await fs.readFile(filePath, { encoding: 'utf-8' });
-}
 
 /**
  * Adds metadata information from a line of text to the song data object.
@@ -91,7 +69,7 @@ export const getSongFileContents = async (identifier: string): Promise<string> =
  */
 const addMetadataToSongData = (line: string, songData: SongData): void => {
     const [name, value] = line.split(':').map(chunk => chunk.trim());
-    songData.metadata[name.toLowerCase()] = value;
+    songData.metadata[name.toLowerCase().replaceAll(' ', '_')] = value;
 };
 
 /**
@@ -99,15 +77,16 @@ const addMetadataToSongData = (line: string, songData: SongData): void => {
  * @param line The contents of a line of text.
  * @param songData The song data object.
  * @param chordClassName The CSS class name to use for the chord.
+ * @param newKey The new key to use for the song.
  */
-const addContentToSongData = (line: string, songData: SongData, chordClassName: string | undefined): void => {
+const addContentToSongData = (line: string, songData: SongData, chordClassName: string | undefined, newKey: Key | undefined): void => {
     // Check for heading.
     if (line[0] === '[') {
         songData.sections.push({
             title: line.slice(1, line.length - 1),
-            content: [],
-            styledContent: [],
-            lyrics: [],
+            originalLines: [],
+            chordedLines: [],
+            lyricLines: [],
         });
         return;
     }
@@ -116,14 +95,19 @@ const addContentToSongData = (line: string, songData: SongData, chordClassName: 
     if (!songData.sections.length) {
         songData.sections.push({
             title: '',
-            content: [],
-            styledContent: [],
-            lyrics: [],
+            originalLines: [],
+            chordedLines: [],
+            lyricLines: [],
         });
     }
 
     // TODO: Remove spaces from inside chord markers.
-    // line = line.replaceAll(/\{.*?(\s*).*?\}/ig, '')
+    line = line.replaceAll(/\{(.*?)\}/ig, (_match, capture) => `{${capture.trim()}}`);
+
+    // Transpose chords.
+    if (newKey && songData.originalMainKey && newKey !== songData.originalMainKey) {
+        line = line.replaceAll(/\{(.*?)\}/ig, (_match, capture) => `{${transpose(capture, songData.originalMainKey as Key, newKey)}}`);
+    }
 
     // Add spaces to force padding between chords when needed.
     let bufferNeeded: number | undefined = undefined;
@@ -179,62 +163,73 @@ const addContentToSongData = (line: string, songData: SongData, chordClassName: 
     });
 
     // Add content to the song data.
-    songData.sections.slice(-1)[0].content.push(line);
+    songData.sections.slice(-1)[0].originalLines.push(line);
     const styledLine = line.replaceAll(/\{(.*?)\}/ig, `<span class="${chordClassName}">$1</span>`);
-    songData.sections.slice(-1)[0].styledContent.push(styledLine);
+    songData.sections.slice(-1)[0].chordedLines.push(styledLine);
     const lyrics = line.replaceAll(/\{(.*?)\}/ig, '')
-    songData.sections.slice(-1)[0].lyrics.push(lyrics);
+    songData.sections.slice(-1)[0].lyricLines.push(lyrics);
 }
 
 // The options used when generating a song data object.
 export type SongDataOptions = {
-    chordClassName?: string;
     metadataOnly?: boolean;
+    newKey?: Key;
+    chordClassName?: string;
 }
 
 /**
  * Generates the song data from the raw file contents.
- * @param fileContents The raw contents of a file.
+ * @param songFileData The raw contents of a file.
  * @param options The options used when generating the song data object.
  * @returns The song data.
  */
-export const getSongDataFromFileContents = (fileContents: string, options?: SongDataOptions): SongData => {
-    const contentLines = fileContents.replaceAll('\r\n', '\n').split('\n');
+export const getSongDataFromFileContents = (songFileData: SongFileData, options?: SongDataOptions): SongData => {
+    const metadataLines = songFileData.metadataContents.replaceAll('\r\n', '\n').split('\n');
+    const songLines = songFileData.songContents.replaceAll('\r\n', '\n').split('\n');
 
-    let isPastHeader = fileContents.indexOf(endHeaderMarker) === -1;
     let songData: SongData = {
+        originalSongFileData: songFileData,
         metadata: {},
         sections: [],
     }
-    contentLines.forEach((line) => {
-        if (!isPastHeader) { // Collect metadata.
-            // Check for end marker.
-            if (line.indexOf(endHeaderMarker) !== -1) {
-                isPastHeader = true;
-                return;
-            }
 
-            // Check for metadata.
-            if (line.indexOf(':') === -1) {
-                return;
-            }
+    metadataLines.forEach((line) => {
+        if (line.indexOf(':') === -1) return;
 
-            addMetadataToSongData(line, songData);
-        } else { // Build content.
-            // Check whether we want 
-            if (options?.metadataOnly) {
-                return;
-            }
+        addMetadataToSongData(line, songData);
+    });
 
-            // Check for content.
-            const trimmedContent = line.trim();
-            if (!trimmedContent) {
-                return;
-            }
+    songData.originalMainKey = getKey(songData.metadata.key) || getKey(songData.metadata.main_key) || undefined;
+    songData.mainKey = options?.newKey || songData.originalMainKey;
 
-            addContentToSongData(trimmedContent, songData, options?.chordClassName)
-        }
+    console.log(songData.originalMainKey, options?.newKey)
+
+    songLines.forEach((line) => {
+        if (options?.metadataOnly) return;
+
+        const trimmedContent = line.trim();
+        if (!trimmedContent) return;
+
+        addContentToSongData(trimmedContent, songData, options?.chordClassName, options?.newKey);
     });
 
     return songData;
+}
+
+/**
+ * Gets the list of all song summaries.
+ * @returns The list of songs.
+ */
+export const getSongListSummaries = async (songFileDataList: SongFileData[]): Promise<SongSummary[]> => {
+    return songFileDataList.map((songFileData) => {
+        const songData = getSongDataFromFileContents(songFileData, { metadataOnly: true });
+        const songSummary: SongSummary = {
+            title: songData.metadata.title ?? '<<Title goes here>>',
+            author: songData.metadata.author || songData.metadata.authors || '<<Author goes here>>',
+            mainKey: getKey(songData.metadata.key) || getKey(songData.metadata.main_key) || null,
+            identifier: songFileData.identifier,
+            metadata: songData.metadata,
+        };
+        return songSummary;
+    });
 }

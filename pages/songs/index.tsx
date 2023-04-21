@@ -1,15 +1,17 @@
 import Head from 'next/head';
 import styles from '@/styles/Home.module.css';
 import type { GetServerSideProps } from 'next';
-import { getSongList } from '@/services/songs.service';
-import type { SongSummary } from '@/services/songs.service';
+import { getSongListSummaries } from '@/services/songsService';
+import type { SongSummary } from '@/services/songsService';
+import { getSongListFileContents } from '@/services/songFileService';
 
 type IProps = {
     songs: SongSummary[];
 }
 
 export const getServerSideProps: GetServerSideProps = async () => {
-    const songs: SongSummary[] = await getSongList();
+    const songListFileContents = await getSongListFileContents();
+    const songs: SongSummary[] = await getSongListSummaries(songListFileContents);
 
     return {
         props: {

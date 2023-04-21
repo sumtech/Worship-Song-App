@@ -2,11 +2,14 @@ import { useState } from 'react'
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import styles from '@/styles/Home.module.css'
-import { getSongFileContents, getSongDataFromFileContents } from '@/services/songs.service'
-import type { SongData } from '@/services/songs.service'
+import { getSongDataFromFileContents } from '@/services/songsService'
+import type { SongData } from '@/services/songsService'
+import { Button, MenuItem, Select } from '@mui/material'
+import { Key } from '@/services/keyChangeService'
+import { SongFileData, getSongFileContents } from '@/services/songFileService'
 
 type IProps = {
-    song: SongData
+    songData: SongData
 }
 
 export const getServerSideProps: GetServerSideProps = async (context) => {
@@ -19,7 +22,7 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
         return { props: { song: null } };
     }
 
-    let fileContents: string;
+    let fileContents: SongFileData;
     try {
         fileContents = await getSongFileContents(identifier);
     } catch {
@@ -29,19 +32,33 @@ export const getServerSideProps: GetServerSideProps = async (context) => {
     const songData = getSongDataFromFileContents(fileContents, { chordClassName: styles.chord });
     return {
         props: {
-            song: songData,
+            songData: songData,
         }
     }
 }
 
-export default function SongPage({ song }: IProps) {
+export default function SongPage({ songData }: IProps) {
+    const [song, setSong] = useState<SongData>(songData)
     const [showChords, setShowChords] = useState(true);
+    const [selectedKey, setSelectedKey] = useState(song.mainKey)
 
     const title = song.metadata.title;
     const author = song.metadata.authors || song.metadata.author;
 
+    const keys = Object.keys(Key)
+        .filter((key) => !isNaN(key as any))
+        .map((key) => ({key: key, label: Key[key as any]}));
+
     const onToggleChords = () => {
         setShowChords(!showChords);
+    }
+
+    const handleKeyChange = (newKeyValue: string) => {
+        const newKey = Number(newKeyValue);
+        setSelectedKey(newKey);
+        
+        const transposedSong = getSongDataFromFileContents(song.originalSongFileData, { chordClassName: styles.chord, newKey });
+        setSong(transposedSong);
     }
 
     return (
@@ -52,7 +69,12 @@ export default function SongPage({ song }: IProps) {
             </Head>
             <main className={styles.main}>
                 <div style={{ float: 'right' }}>
-                    <button onClick={onToggleChords}>{showChords ? 'Hide Chords' : 'Show Chords'}</button>
+                    <Select label="Key" value={selectedKey} onChange={(event) => handleKeyChange(event.target.value as any)}>
+                        {keys.map((key) => (
+                            <MenuItem key={key.key} value={key.key}>{key.label}</MenuItem>
+                        ))}
+                    </Select>
+                    <Button onClick={onToggleChords}>{showChords ? 'Hide Chords' : 'Show Chords'}</Button>
                 </div>
                 <h1 className={styles.songTitle}>{title}</h1>
                 <div className={styles.songAuthor}>{author}</div>
@@ -66,10 +88,10 @@ export default function SongPage({ song }: IProps) {
                             <h2>{section.title}</h2>
                             {
                                 showChords ?
-                                    section.styledContent.map((item, index) => (
+                                    section.chordedLines.map((item, index) => (
                                         <pre key={index} className={styles.line} dangerouslySetInnerHTML={{ __html: item }}></pre>
                                     )) :
-                                    section.lyrics.map((item, index) => (
+                                    section.lyricLines.map((item, index) => (
                                         <pre key={index} className={styles.line}>{item}</pre>
                                     ))
                             }

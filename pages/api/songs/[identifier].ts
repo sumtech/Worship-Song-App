@@ -1,6 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from 'next';
-import { getFileContents, getSongDataFromFileContents } from '@/services/songs.service';
-import type { SongData } from "@/services/songs.service"
+import { getFileContents, getSongDataFromFileContents } from '@/services/songsService';
+import type { SongData } from "@/services/songsService"
 
 export default async function handler(
   req: NextApiRequest,
