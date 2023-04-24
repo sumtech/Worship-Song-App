@@ -1,4 +1,5 @@
-import { type Key, getKey, transpose } from "./keyChangeService";
+import { Key } from "./keys";
+import { getKeyIndex, transpose } from "./keys/keyChangeService";
 import { SongFileData } from "./songFileService";
 
 /**
@@ -105,7 +106,7 @@ const addContentToSongData = (line: string, songData: SongData, chordClassName: 
     line = line.replaceAll(/\{(.*?)\}/ig, (_match, capture) => `{${capture.trim()}}`);
 
     // Transpose chords.
-    if (newKey && songData.originalMainKey && newKey !== songData.originalMainKey) {
+    if (newKey !== undefined && songData.originalMainKey && newKey !== songData.originalMainKey) {
         line = line.replaceAll(/\{(.*?)\}/ig, (_match, capture) => `{${transpose(capture, songData.originalMainKey as Key, newKey)}}`);
     }
 
@@ -199,10 +200,10 @@ export const getSongDataFromFileContents = (songFileData: SongFileData, options?
         addMetadataToSongData(line, songData);
     });
 
-    const key = getKey(songData.metadata.key || songData.metadata.main_key);
+    const key = getKeyIndex(songData.metadata.key || songData.metadata.main_key);
     if (key) {
         songData.originalMainKey = key;
-        songData.mainKey = options?.newKey || songData.originalMainKey;
+        songData.mainKey = options?.newKey ?? songData.originalMainKey;
     }
 
     songLines.forEach((line) => {
@@ -227,7 +228,7 @@ export const getSongListSummaries = async (songFileDataList: SongFileData[]): Pr
         const songSummary: SongSummary = {
             title: songData.metadata.title ?? '<<Title goes here>>',
             author: songData.metadata.author || songData.metadata.authors || '<<Author goes here>>',
-            mainKey: getKey(songData.metadata.key) || getKey(songData.metadata.main_key) || null,
+            mainKey: getKeyIndex(songData.metadata.key) || getKeyIndex(songData.metadata.main_key) || null,
             identifier: songFileData.identifier,
             metadata: songData.metadata,
         };

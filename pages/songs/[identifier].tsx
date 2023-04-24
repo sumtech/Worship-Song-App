@@ -6,7 +6,7 @@ import { Button, MenuItem, Select } from '@mui/material'
 import styles from '@/styles/Home.module.css'
 import { getSongDataFromFileContents } from '@/services/songsService'
 import type { SongData } from '@/services/songsService'
-import { Key } from '@/services/keyChangeService'
+import { Key } from '@/services/keys'
 import { SongFileData, getSongFileContents } from '@/services/songFileService'
 
 type IProps = {
@@ -71,7 +71,7 @@ export default function SongPage({ songData }: IProps) {
             <main className={styles.main}>
                 <div style={{ float: 'right' }}>
                     {
-                        selectedKey ?
+                        selectedKey || selectedKey === 0 ?
                             <Select label="Key" value={selectedKey} onChange={(event) => handleKeyChange(event.target.value as any)}>
                                 {keys.map((key) => (
                                     <MenuItem key={key.key} value={key.key}>{key.label}</MenuItem>
