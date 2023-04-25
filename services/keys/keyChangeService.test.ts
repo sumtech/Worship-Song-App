@@ -172,4 +172,15 @@ describe('transpose', () => {
             expect(actual).toBe(expected);
         });
     });
+
+    describe('transposing edge cases', () => {
+        it('should allow optional chords surrounded in parenthases.', () => {
+            const value = "(F#m)";
+            const originalKey = Key.E;
+            const newKey = Key.G;
+            const expected = "(Am)";
+            const actual = transpose(value as string, originalKey, newKey);
+            expect(actual).toBe(expected);
+        });
+    })
 });

@@ -84,29 +84,6 @@ const getChordKey = (chordKeyIndex: number, mainKey: string): string => {
     return possibleKeys.filter((property) => {
         return !property.endsWith("♭") && !property.endsWith("#");
     })[0];
-
-    throw `There was not a single key returned. (${chordKeyIndex} - ${mainKey}) (${possibleKeys.length} - ${possibleKeys2.length}, ${possibleKeys2[0]})`;
-
-    switch (chordKeyIndex) {
-        case Key.A:
-        case Key.B:
-        case Key.C:
-        case Key.D:
-        case Key.E:
-        case Key.F:
-        case Key.G:
-            return Key[chordKeyIndex] as string;
-
-        case Key["A♭"]:
-        case Key["B♭"]:
-        case Key["C#"]:
-        case Key["E♭"]:
-        case Key["F#"]:
-            return Key[chordKeyIndex] as string;
-
-        default:
-            throw `The correct correct could not be determined for ${chordKeyIndex} (${Key[chordKeyIndex]})`;
-    }
 }
 
 /**
@@ -119,17 +96,30 @@ const getKeyChange = (originalKeyIndex: Key, newKeyIndex: Key): number => {
     return newKeyIndex - originalKeyIndex;
 }
 
+type ChordParts = {
+    chordType: ChordType;
+    chordKey: string;
+    isOptional?: boolean;
+}
+
 /**
  * Gets the parts of the chord.
  * @param chord The chord.
  * @returns The information to build the chord.
  */
-const getChordParts = (chord: string): { chordType: ChordType, chordKey: string } => {
+const getChordParts = (chord: string): ChordParts => {
+    let isOptional: boolean = false;
+    if (chord[0] === '(' && chord[chord.length - 1] === ')') {
+        isOptional = true;
+        chord = chord.slice(1, -1);
+    }
+
     // Augmented
     if (chord.endsWith("+")) {
         return {
             chordType: ChordType.Augmented,
             chordKey: chord.slice(0, chord.length - 1),
+            isOptional,
         };
     }
 
@@ -137,6 +127,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.Augmented,
             chordKey: chord.slice(0, chord.length - 3),
+            isOptional,
         };
     }
 
@@ -145,6 +136,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.Diminished,
             chordKey: chord.slice(0, chord.length - 1),
+            isOptional,
         };
     }
 
@@ -152,6 +144,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.Diminished,
             chordKey: chord.slice(0, chord.length - 3),
+            isOptional,
         };
     }
 
@@ -160,6 +153,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.Minor,
             chordKey: chord.slice(0, chord.length - 1),
+            isOptional,
         };
     }
 
@@ -167,6 +161,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.Minor,
             chordKey: chord.slice(0, chord.length - 3),
+            isOptional,
         };
     }
 
@@ -175,6 +170,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.Suspended,
             chordKey: chord.slice(0, chord.length - 3),
+            isOptional,
         };
     }
 
@@ -182,6 +178,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.Suspended,
             chordKey: chord.slice(0, chord.length - 4),
+            isOptional,
         };
     }
 
@@ -190,6 +187,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorSixth,
             chordKey: chord.slice(0, chord.length - 1),
+            isOptional,
         };
     }
 
@@ -198,6 +196,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MinorSeventh,
             chordKey: chord.slice(0, chord.length - 2),
+            isOptional,
         };
     }
 
@@ -206,6 +205,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.SuspendedMinorSeventh,
             chordKey: chord.slice(0, chord.length - 4),
+            isOptional,
         };
     }
 
@@ -214,6 +214,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorSeventh,
             chordKey: chord.slice(0, chord.length - 4),
+            isOptional,
         };
     }
 
@@ -221,6 +222,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorSeventh,
             chordKey: chord.slice(0, chord.length - 2),
+            isOptional,
         };
     }
 
@@ -228,6 +230,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorSeventh,
             chordKey: chord.slice(0, chord.length - 1),
+            isOptional,
         };
     }
 
@@ -236,6 +239,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorSuspended2,
             chordKey: chord.slice(0, chord.length - 4),
+            isOptional,
         };
     }
 
@@ -243,6 +247,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorSuspended2,
             chordKey: chord.slice(0, chord.length - 1),
+            isOptional,
         };
     }
 
@@ -251,6 +256,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorNinth,
             chordKey: chord.slice(0, chord.length - 4),
+            isOptional,
         };
     }
 
@@ -259,6 +265,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorAddNinth,
             chordKey: chord.slice(0, chord.length - 4),
+            isOptional,
         };
     }
 
@@ -266,6 +273,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorAddNinth,
             chordKey: chord.slice(0, chord.length - 1),
+            isOptional,
         };
     }
 
@@ -274,6 +282,7 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorMissingThird,
             chordKey: chord.slice(0, chord.length - 1),
+            isOptional,
         };
     }
 
@@ -281,13 +290,15 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
         return {
             chordType: ChordType.MajorMissingThird,
             chordKey: chord.slice(0, chord.length - 5),
+            isOptional,
         };
     }
 
     // Major
     return {
         chordType: ChordType.Major,
-        chordKey: chord
+        chordKey: chord,
+        isOptional,
     };
 }
 
@@ -297,50 +308,71 @@ const getChordParts = (chord: string): { chordType: ChordType, chordKey: string 
  * @param chordKey The chord key value.
  * @returns The complete chord value.
  */
-const getChord = (chordType: ChordType, chordKey: string): string => {
-    switch (chordType) {
+const getChord = (chordParts: ChordParts): string => {
+    let chord;
+    switch (chordParts.chordType) {
         case ChordType.Major:
-            return chordKey;
+            chord = chordParts.chordKey;
+            break;
 
         case ChordType.Minor:
-            return `${chordKey}m`;
+            chord = `${chordParts.chordKey}m`;
+            break;
 
         case ChordType.Suspended:
-            return `${chordKey}sus`;
+            chord = `${chordParts.chordKey}sus`;
+            break;
 
         case ChordType.MajorSixth:
-            return `${chordKey}6`;
+            chord = `${chordParts.chordKey}6`;
+            break;
 
         case ChordType.MajorSeventh:
-            return `${chordKey}7`;
+            chord = `${chordParts.chordKey}7`;
+            break;
 
         case ChordType.MinorSeventh:
-            return `${chordKey}m7`;
+            chord = `${chordParts.chordKey}m7`;
+            break;
 
         case ChordType.SuspendedMinorSeventh:
-            return `${chordKey}sus7`;
+            chord = `${chordParts.chordKey}sus7`;
+            break;
 
         case ChordType.MajorSuspended2:
-            return `${chordKey}2`;
+            chord = `${chordParts.chordKey}2`;
+            break;
 
         case ChordType.MajorNinth:
-            return `${chordKey}maj9`;
+            chord = `${chordParts.chordKey}maj9`;
+            break;
 
         case ChordType.MajorAddNinth:
-            return `${chordKey}9`;
+            chord = `${chordParts.chordKey}9`;
+            break;
 
         case ChordType.MajorMissingThird:
-            return `${chordKey}5`;
+            chord = `${chordParts.chordKey}5`;
+            break;
 
         case ChordType.Augmented:
-            return `${chordKey}+`;
+            chord = `${chordParts.chordKey}+`;
+            break;
 
         case ChordType.Diminished:
-            return `${chordKey}o`;
+            chord = `${chordParts.chordKey}o`;
+            break;
 
         default:
-            return chordKey;
+            chord = chordParts.chordKey;
+            break;
     }
+
+    if (chordParts.isOptional) {
+        return `(${chord})`;
+    }
+
+    return chord;
 }
 
 /**
@@ -376,6 +408,6 @@ export const transpose = (originalChord: string, originalKeyIndex: Key, newKeyIn
 
     return originalChord.split('/')
         .map((chord) => getChordParts(chord))
-        .map((chord) => getChord(chord.chordType, transposeChord(chord.chordKey, indexChange, newKeyIndex)))
+        .map((chordParts) => getChord({ ...chordParts, chordKey: transposeChord(chordParts.chordKey, indexChange, newKeyIndex)} ))
         .join('/');
 }
