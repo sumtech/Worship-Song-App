@@ -406,8 +406,10 @@ const transposeChord = (chordKey: string, indexChange: number, mainKeyIndex: num
 export const transpose = (originalChord: string, originalKeyIndex: Key, newKeyIndex: Key): string => {
     const indexChange: number = getKeyChange(originalKeyIndex, newKeyIndex);
 
-    return originalChord.split('/')
-        .map((chord) => getChordParts(chord))
-        .map((chordParts) => getChord({ ...chordParts, chordKey: transposeChord(chordParts.chordKey, indexChange, newKeyIndex)} ))
-        .join('/');
+    return originalChord.split('|')
+        .map((chord) => chord.split('/')
+            .map((chord) => getChordParts(chord))
+            .map((chordParts) => getChord({ ...chordParts, chordKey: transposeChord(chordParts.chordKey, indexChange, newKeyIndex) }))
+            .join('/'))
+        .join('|');
 }

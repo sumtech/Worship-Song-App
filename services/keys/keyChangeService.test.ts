@@ -182,5 +182,14 @@ describe('transpose', () => {
             const actual = transpose(value as string, originalKey, newKey);
             expect(actual).toBe(expected);
         });
+
+        it('should allow options for chords using a pipe', () => {
+            const value = "Bm|B7";
+            const originalKey = Key.G;
+            const newKey = Key.G;
+            const expected = "Bm|B7";
+            const actual = transpose(value as string, originalKey, newKey);
+            expect(actual).toBe(expected);
+        });
     })
 });
