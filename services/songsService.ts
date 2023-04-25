@@ -106,8 +106,9 @@ const addContentToSongData = (line: string, songData: SongData, chordClassName: 
     line = line.replaceAll(/\{(.*?)\}/ig, (_match, capture) => `{${capture.trim()}}`);
 
     // Transpose chords.
-    if (newKey !== undefined && songData.originalMainKey && newKey !== songData.originalMainKey) {
-        line = line.replaceAll(/\{(.*?)\}/ig, (_match, capture) => `{${transpose(capture, songData.originalMainKey as Key, newKey)}}`);
+    if (newKey !== undefined || songData.originalMainKey !== undefined) {
+        line = line.replaceAll(/\{(.*?)\}/ig, (_match, capture) =>
+            `{${transpose(capture, songData.originalMainKey as Key, newKey ?? songData.originalMainKey as number)}}`);
     }
 
     // Add spaces to force padding between chords when needed.

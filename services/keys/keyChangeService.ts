@@ -165,6 +165,23 @@ const getChordParts = (chord: string): ChordParts => {
         };
     }
 
+    // Suspended Minor 7th
+    if (chord.endsWith("7sus4")) {
+        return {
+            chordType: ChordType.SuspendedMinorSeventh,
+            chordKey: chord.slice(0, chord.length - 5),
+            isOptional,
+        };
+    }
+
+    if (chord.endsWith("sus7")) {
+        return {
+            chordType: ChordType.SuspendedMinorSeventh,
+            chordKey: chord.slice(0, chord.length - 4),
+            isOptional,
+        };
+    }
+
     // Suspended
     if (chord.endsWith("sus")) {
         return {
@@ -196,15 +213,6 @@ const getChordParts = (chord: string): ChordParts => {
         return {
             chordType: ChordType.MinorSeventh,
             chordKey: chord.slice(0, chord.length - 2),
-            isOptional,
-        };
-    }
-
-    // Suspended Minor 7th
-    if (chord.endsWith("sus7")) {
-        return {
-            chordType: ChordType.SuspendedMinorSeventh,
-            chordKey: chord.slice(0, chord.length - 4),
             isOptional,
         };
     }
