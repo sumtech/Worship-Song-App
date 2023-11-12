@@ -13,7 +13,7 @@ export type SongFileData = {
  */
 export const getSongListFileContents = async (): Promise<SongFileData[]> => {
     const fileDirectory = path.join(process.cwd(), 'song-files');
-    const files = await fs.readdir(fileDirectory, { encoding: 'utf-8' });
+    const files = (await fs.readdir(fileDirectory, { encoding: 'utf-8' })).filter(file => path.extname(file) === '.txt');
 
     return Promise.all(files.map(async file => {
         const filePath = `${fileDirectory}/${file}`;
@@ -71,5 +71,5 @@ export const getSongFileContents = async (identifier: string): Promise<SongFileD
 export const saveSongFileContents = async (identifier: string, metadataContents: string, newFileContents: string): Promise<void> => {
     const fileDirectory = path.join(process.cwd(), 'song-files');
     const filePath = `${fileDirectory}/${identifier}.txt`;
-    await fs.writeFile(filePath, `${metadataContents}==========\r\n${newFileContents}`, { encoding: 'utf-8'});
+    await fs.writeFile(filePath, `${metadataContents}==========\r\n${newFileContents}`, { encoding: 'utf-8' });
 }
