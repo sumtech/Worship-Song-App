@@ -6,33 +6,53 @@ First, run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
-
-[API routes](https://nextjs.org/docs/api-routes/introduction) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
-
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/api-routes/introduction) instead of React pages.
-
 This project uses [`next/font`](https://nextjs.org/docs/basic-features/font-optimization) to automatically optimize and load Inter, a custom Google Font.
 
-## Learn More
+## Application Deployment
 
-To learn more about Next.js, take a look at the following resources:
+## Song Files
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+The application is using `.txt` files to store the song information.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+### Format
 
-## Deploy on Vercel
+The `.txt` files have two sections separated by a series of five or more `=` characters. The first section contains the metadata about the song while the second section has the lyric and chord information for the song.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```
+Title: Break Every Chain
+Author: Jesus Culture
+Album: Awakening Live from Chicago
+Key: A
+Source: https://tabs.ultimate-guitar.com/tab/jesus-culture/break-every-chain-chords-1113828
+==========
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+[Intro]
+{F#m}{D}{A}{E}
+
+[Chorus]
+There is {F#m}power {D}in the name of {A}Jesus {E}
+There is {F#m}power {D}in the name of {A}Jesus {E}
+There is {F#m}power {D}in the name of {A}Jesus {E}
+
+...
+```
+
+### Location of Files
+
+#### Local
+
+When doing development work on your local machine, the song files should be stored in the `<project_root>\song-files\` directory. Only `.txt` files will be read.
+
+#### Deployed
+
+For the deployed version in Azure, the files are stored in a storage account container.
+
+|  | Name |
+|--|--|
+| Resource group | rg-WorshipApps
+| Storage account | worshipappstorage
+| Container | c-worship-songs
