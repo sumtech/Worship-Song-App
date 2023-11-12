@@ -62,3 +62,14 @@ export const getSongFileContents = async (identifier: string): Promise<SongFileD
         songContents: fileContentParts[1],
     };
 }
+
+/**
+ * Saves the new file contents over the old file contents for the song.
+ * @param identifier The identifier for the song, based on how the file is named. i.e., "worthy-of-it-all"
+ * @param newFileContents The new raw contents of the song file.
+ */
+export const saveSongFileContents = async (identifier: string, metadataContents: string, newFileContents: string): Promise<void> => {
+    const fileDirectory = path.join(process.cwd(), 'song-files');
+    const filePath = `${fileDirectory}/${identifier}.txt`;
+    await fs.writeFile(filePath, `${metadataContents}==========\r\n${newFileContents}`, { encoding: 'utf-8'});
+}
