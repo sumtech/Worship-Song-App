@@ -1,2 +1,2 @@
 export * from './keyChangeService';
-export { Key } from './keys.model';
+export { Key, KeyMap } from './keys.model';

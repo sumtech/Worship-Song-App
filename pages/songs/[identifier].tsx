@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { GetServerSideProps } from 'next'
 import Head from 'next/head'
 import Link from 'next/link'
+import { useRouter } from 'next/router'
 import { Button, MenuItem, Select } from '@mui/material'
 import styles from '@/styles/Home.module.css'
 import { getSongDataFromFileContents } from '@/services/songsService'
 import type { SongData } from '@/services/songsService'
-import { Key } from '@/services/keys'
+import { Key, KeyMap } from '@/services/keys'
 import { SongFileData, getSongFileContents } from '@/services/songFileService'
 
 type IProps = {
@@ -46,6 +47,16 @@ export default function SongPage({ songData }: IProps) {
     const title = song.metadata.title;
     const author = song.metadata.authors || song.metadata.author;
 
+    const { push, query } = useRouter();
+
+    useEffect(() => {
+        const key = query?.key as string;
+        if (!key) return;
+        const keyValue = KeyMap[key];
+        if (!keyValue) return;
+        handleKeyChange(keyValue);
+    }, [])
+
     const keys = Object.keys(Key)
         .filter((key) => !isNaN(key as any))
         .map((key) => ({ key: key, label: Key[key as any] }));
@@ -54,12 +65,14 @@ export default function SongPage({ songData }: IProps) {
         setShowChords(!showChords);
     }
 
-    const handleKeyChange = (newKeyValue: string) => {
+    const handleKeyChange = (newKeyValue: string | number) => {
         const newKey = Number(newKeyValue);
         setSelectedKey(newKey);
 
         const transposedSong = getSongDataFromFileContents(song.originalSongFileData, { chordClassName: styles.chord, newKey });
         setSong(transposedSong);
+
+        push({ query: { ...query, key: Key[newKey] } }, undefined, { shallow: true });
     }
 
     return (
@@ -72,7 +85,7 @@ export default function SongPage({ songData }: IProps) {
                 <div style={{ float: 'right' }}>
                     {
                         selectedKey || selectedKey === 0 ?
-                            <Select label="Key" value={selectedKey} onChange={(event) => handleKeyChange(event.target.value as any)}>
+                            <Select label="Key" value={selectedKey} onChange={(event) => handleKeyChange(event.target.value)}>
                                 {keys.map((key) => (
                                     <MenuItem key={key.key} value={key.key}>{key.label}</MenuItem>
                                 ))}

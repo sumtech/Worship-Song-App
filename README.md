@@ -53,11 +53,11 @@ When doing development work on your local machine, the song files should be stor
 
 For the deployed version in Azure, the files are stored in a storage account container.
 
-|  | Name |
-|--|--|
-| Resource group | rg-WorshipApps
-| Storage account | worshipappstorage
-| Container | c-worship-songs
+|                 | Name              |
+|-----------------|-------------------|
+| Resource group  | rg-WorshipApps    |
+| Storage account | worshipappstorage |
+| File share      | f-worship-songs   |
 
 ### Automated Conversion
 
