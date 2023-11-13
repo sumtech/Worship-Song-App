@@ -69,6 +69,7 @@ describe('transpose', () => {
             ["Csus2", Key.C, "C2"],
             ["Cmaj9", Key.C, "Cmaj9"],
             ["C9", Key.C, "C9"],
+            ["Cm9", Key.C, "Cm9"],
             ["Cadd9", Key.C, "C9"],
             ["C5", Key.C, "C5"],
             ["C(no3)", Key.C, "C5"],

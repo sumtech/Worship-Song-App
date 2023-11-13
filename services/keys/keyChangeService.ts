@@ -268,6 +268,16 @@ const getChordParts = (chord: string): ChordParts => {
         };
     }
 
+    // Minor 9th
+    if (chord.endsWith("m9")) {
+        console.log('chord', chord)
+        return {
+            chordType: ChordType.MinorNinth,
+            chordKey: chord.slice(0, chord.length - 2),
+            isOptional,
+        };
+    }
+
     // Major Add 9
     if (chord.endsWith("add9")) {
         return {
@@ -357,6 +367,10 @@ const getChord = (chordParts: ChordParts): string => {
 
         case ChordType.MajorAddNinth:
             chord = `${chordParts.chordKey}9`;
+            break;
+
+        case ChordType.MinorNinth:
+            chord = `${chordParts.chordKey}m9`;
             break;
 
         case ChordType.MajorMissingThird:

@@ -115,6 +115,9 @@ export enum ChordType {
     // 1, 2, 3, 5
     MajorAddNinth,
 
+    // 1, 3♭, 5, 7♭, 9
+    MinorNinth,
+
     // 1, 5
     MajorMissingThird,
 
